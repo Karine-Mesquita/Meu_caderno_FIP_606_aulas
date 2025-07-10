@@ -11,13 +11,13 @@ editor: visual
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 100vh;  /* altura total da tela */
   text-align: center;
 }
 
 /* Logo */
 #logo {
-  width: 150px; /* Ajuste o tamanho do logo conforme necessário */
+  width: 150px;  /* Ajuste o tamanho do logo conforme necessário */
   height: auto;
   margin-bottom: 20px;
 }
@@ -26,9 +26,8 @@ editor: visual
 #welcome-text {
   font-size: 24px;
   font-weight: bold;
-  color: #0077b6; /* Cor azul do texto */
-  font-family: "Georgia", serif;
+  color: #0077b6;  /* Cor azul do texto */
+  font-family: "Georgia", serif;  /* Fonte acadêmica */
 }
-
 
 ```

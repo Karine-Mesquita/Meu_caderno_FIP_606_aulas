@@ -1,14 +1,14 @@
 ---
 title: "Seja Bem-Vindo ao meu Caderno de Aulas"
-output: 
-  html_document:
-    css: styles.css
+format: html
+editor: visual
+css: styles.css  
 ---
 
 ::: {#index-container}
 <!-- Logo -->
 
-![Logo do site](images/logo_site.png){#logo}
+![Logo do site](images/logo_site.png){#logo fig-align="center"}
 
 <!-- Texto de boas-vindas -->
 
