@@ -8,8 +8,6 @@ css: styles.css
 ::: {#index-container}
 <!-- Logo -->
 
-![Logo do site](images/logo_site.png){#logo fig-align="center" width="247"}
-
 <!-- Texto de boas-vindas -->
 
 <p id="welcome-text">
