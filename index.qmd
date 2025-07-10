@@ -6,8 +6,6 @@ css: styles.css
 ---
 
 ::: {#index-container}
-<!-- Texto de boas-vindas -->
-
 <p id="welcome-text">
 
 Bem-vindo(a) ao meu caderno da disciplina FIP 606 – Análise e Visualização de Dados em Fitopatologia. Este é um caderno de aulas da disciplina FIP 606 - Análise e visualização de dados em Fitopatologia. Ministradas por Emerson Del Ponte no primeiro semetre do ano de 2025.
