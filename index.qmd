@@ -5,9 +5,9 @@ editor: visual
 css: styles.css  
 ---
 
-::: {#index-container}
-<p id="welcome-text">
+![](images/logo_site.png){fig-align="center" width="329"}
 
+::: {#index-container}
 Bem-vindo(a) ao meu caderno da disciplina FIP 606 – Análise e Visualização de Dados em Fitopatologia. Este é um caderno de aulas da disciplina FIP 606 - Análise e visualização de dados em Fitopatologia. Ministradas por Emerson Del Ponte no primeiro semetre do ano de 2025.
 
 Este caderno tem como finalidade auxiliar aos alunos da disciplina a organizarem os estudos e a partir de sua disponibilização no site, pode ser utilizados por outras pessoas que busquem aprender sobre alguns testes ou funcionalidades do R.
@@ -29,6 +29,4 @@ Caso você seja da área de agrárias e se interesse pelo tema, recomendo fortem
 E por fim, livros da companhia "O´Reilly", tem várias E-books interessantes tanto para a linguagem R, quanto para outros programas como Phyton, por exemplo.
 
 Dito isso, vamos começar!
-
-</p>
 :::

@@ -9,8 +9,6 @@ warning: false
 message: false
 ---
 
-## Apresentação do site
-
 ![](images/download.jpeg){style="float right" fig-align="center"}
 
 O conjunto de dados será o da ferrugem do café na Etiópia que está no arquivo de dados na nuvem.
