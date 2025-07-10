@@ -1,0 +1,249 @@
+---
+title: "Aula_6_Transformações, Modelos Lineares e Curvas Dose-Resposta"
+author: "Karine Mesquita"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Aula 6
+
+Nesta aula abordamos estratégias para normalizar dados experimentais por meio de transformações (como a raiz quadrada e o método de **Box-Cox**), quando a Anova não atender aos pressupostos de normalidade e homocedasticidade. Por fim, introduzimos os **modelos não lineares** para curvas dose-resposta, utilizando o pacote `drc`.
+
+## Transformação de dados
+
+### Box cox
+
+```{r}
+#install.packages("MASS")
+library(MASS)
+insects <- InsectSprays
+
+m1 <- lm(count ~spray, data = insects)
+
+library(DHARMa)
+plot(simulateResiduals(m1))
+
+#como não atendeu ao pressuposto de homogeneidade, testamos a transformação dos dados. 
+#Inicialmente testa a transformação por raiz quadrada. 
+
+m1 <- lm(sqrt(count) ~ spray, data = insects)
+m1
+library(DHARMa)
+plot(simulateResiduals(m1))
+
+#Transformação por log (com +1 para evitar log(0))
+m1_log <- lm(log(count + 1) ~ spray, data = insects)  # +1 para evitar log(0), caso tenha valores zero
+m1_log
+
+library(DHARMa)
+plot(simulateResiduals(m1_log))
+
+#raiz quadrada é 0.5 e log é 0.Quando lambda é 1 o valor é igual o original. 
+#box cox é usado quando o log ou raiz não dá certo. 
+#as médias tem que ser com os valores destransformados 
+
+boxcox(lm(insects$count+0.1 ~ 1))
+b <- boxcox(lm(insects$count+0.1 ~ 1))
+lambda <- b$x[which.max(b$y)] # Extrair o lambda ótimo
+lambda
+
+# Quando for apresentar as médias, deve-se usar os valores originais (sem transformação).
+# A transformação é aplicada apenas para satisfazer os pressupostos da ANOVA ou regressão.
+
+library(tidyverse) 
+insects <- insects |> 
+  mutate(count2 = (count^lambda-1)/lambda) |> 
+  mutate(count3 = (sqrt(count))) 
+hist(insects$count2)
+
+```
+
+### Análise de regressão
+
+```{r}
+library(gsheet)
+estande <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1bq2N19DcZdtax2fQW9OHSGMR0X2__Z9T/edit?gid=401662555#gid=401662555")
+estande
+#análise visual dos dados em da emergencia de plantas em função dos inóculos 
+
+library(ggplot2)
+estande |> 
+ggplot(aes(trat,nplants))+
+  geom_point(color = "gray")+
+  geom_smooth(method = "lm", se = FALSE, color = "black")+
+    facet_wrap(~ exp)+
+  theme_minimal()+
+  labs(x= "% de inóculo da semente",
+       y= "número de plantas")
+
+
+```
+
+### Analise de regressão com o experimento 1
+
+Gerar um modelo para cada experimento
+
+```{r}
+exp1 <- estande |> 
+  filter(exp == 1) |>
+  group_by(trat) |> 
+  summarise(nplants2 = mean(nplants))
+
+exp1 |> 
+  ggplot(aes(trat, nplants2))+
+  geom_point()+
+  ylim(20,60)
+
+  
+m_exp1 <- lm(nplants2 ~ trat, data = exp1)
+summary(m_exp1)
+
+# Sem summarise, mantendo 'nplants', 'trat' e 'bloco'
+exp1 <- estande |> 
+  filter(exp == 1)
+
+# Modelo com trat e bloco
+m_exp1 <- lm(nplants ~ trat + bloco, data = exp1)
+summary(m_exp1)
+
+m_exp1 <- lm(nplants ~ trat + bloco, data = exp1)
+summary(m_exp1)
+
+#Na ausência de inóculo (intercepto), a média de plantas no estande é de 52. A cada aumento de 1% no inóculo, observa-se uma redução de 0,24 no número de plantas.
+```
+
+## Experimento 2
+
+```{r}
+exp2 <- estande |> 
+  filter(exp == 2)
+
+m_exp2 <- lm(nplants ~ trat , data = exp2)
+summary(m_exp2)
+
+
+```
+
+## Experimento 3
+
+```{r}
+exp3 <- estande |> 
+  filter(exp == 3)
+
+m_exp3 <- lm(nplants ~ trat , data = exp3)
+summary(m_exp3)
+
+#calcular o slop para o experimento
+m_exp1$coefficients 
+m_exp2$coefficients
+m_exp3$coefficients
+
+m_exp1$coefficients
+(0.24 + 0.7 + 0.76)/3
+
+```
+
+## Considerando o bloco como efeito aleatório
+
+#### \*efeito fixo é o tratamento e blocos os efeitos aleatórios.
+
+## Modelo misto
+
+```{r}
+library(lme4)
+m_misto <- lmer(nplants ~ trat + (1 | exp/bloco),
+                data = estande)
+#acima, o tratamento é efeito fixo, os experimentos e blocos efeitos aleatórios, e os blocos estão dentro dos experimentos.
+
+confint(m_misto)
+summary(m_misto)
+
+library(car)
+Anova(m_misto)
+predict(m_misto, data = estande)
+
+#P foi siguinificativo
+
+estande |>
+  ggplot(aes(trat, nplants, color = factor(exp)))+
+  geom_point()+
+  #geom_smooth(method = "lm", se = FALSE)+
+  geom_abline(intercept = 69.74,
+              slope = -0.568, linewidth = 2)+
+  geom_abline(intercept = 43, slope = -0.73, linetype = "dashed")+
+  geom_abline(intercept = 96, slope = -0.40, linetype = "dashed")
+```
+
+### Regressão não linear
+
+```{r}
+fungi <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1bq2N19DcZdtax2fQW9OHSGMR0X2__Z9T/edit?gid=465348652#gid=465348652")
+
+library(dplyr)
+
+#visualizar os dados 
+
+fungi |>
+  group_by(code, dose) |>
+  summarise(germination = mean(germination)) |>
+  ggplot(aes(dose, germination))+
+  geom_point()+
+  geom_line()+
+  #geom_smooth(se = FALSE)+
+  facet_wrap(~code)
+
+FGT43 <- fungi |>
+  group_by(code, dose) |>
+  summarise(germination = mean(germination)) |>  
+filter(code == "FGT43")
+
+#filtrar para o conjunto de médias de FGT43
+
+#install.packages("drc"), ajustar o modelo não linear aos dados 
+
+library(drc)
+
+m43 <- drm(germination ~ dose,
+           data = FGT43,
+           fct = W2.3())
+  
+m43 <- drm(germination ~dose,
+           data = FGT43, 
+           fct = LL.3()) #começar a testar com o modelo LL.3 
+
+summary(m43)
+AIC(m43) #quanto < o AIC, melhor. 
+plot(m43)
+ED(m43, 50)
+#Estima a EC50.
+
+#testar para cada isolado, qual modelo fica melhor.
+
+#install.packages("ec50estimator")
+library(ec50estimator)
+
+
+df_ec50 = estimate_EC50(germination ~ dose,
+                        data =fungi,
+                        isolate_col = "code",
+                        strata_col =  c("state"),
+                        interval = "delta",
+                        fct = drc::LL.3())
+head(df_ec50)
+
+library(ggplot2)
+df_ec50 |>
+  ggplot(aes(reorder(ID, Estimate), Estimate))+ 
+  geom_point()+
+  coord_flip()+
+  labs(y = "EC50",
+       x = "Isolado")
+
+  
+df_ec50 |>
+  ggplot(aes(x = Estimate))+
+  geom_histogram(bins = 5, color = "white")
+
+```

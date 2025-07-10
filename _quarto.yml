@@ -1,0 +1,53 @@
+project:
+  type: website
+  output-dir: docs
+
+execute:
+  cache: true
+  freeze: auto
+
+website:
+  favicon: images/logo_site.png
+  reader-mode: true
+  page-navigation: true
+  title: "Caderno de Aulas FIP 606"
+  navbar:
+    pinned: true
+    logo: images/logo_site.png
+    border: false
+    background: "white"
+    search: true
+    left:
+     
+      - text: "Seja bem - vindo"
+        file: index.qmd
+      - text: "Aula_1_Introdução ao R Studio"
+        file: Aula_1_Introdução_ao_R_Studio.qmd
+      - text: "Aula_2_Ler dados de arquivos"
+        file: Aula_2_Ler_dados_de_arquivos.qmd
+      - text: "Aula_3_Testes estatisticos"
+        file: Aula_3_Testes_estatisticos.qmd
+      - text: "Aula_4_ANOVA fatorial"
+        file: Aula_4_ANOVA_fatorial.qmd
+      - text: "Aula_5_Comparação de Tratamentos com ANOVA, Modelos Mistos e Correlação"
+        file: Aula_5_Comparação de Tratamentos com ANOVA, Modelos Mistos e Correlação.qmd
+      - text: "Aula_6_Transformações, Modelos Lineares e Curvas Dose-Resposta"
+        file: Aula_6_Transformações, Modelos Lineares e Curvas Dose-Resposta.qmd
+      - text: "Aula_7_Análise de dados com mapa_Etiopia"
+        file: Aula_7_Análise_de_dados_com_mapa_Etiopia.qmd
+     
+  page-footer:
+    border: true
+    left: "Ant Karine M Fernandes, 2025"
+
+format:
+  html:
+    theme: flatly
+    css: styles.css
+    df-print: paged
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    lib_dir: site_libs
+    self_contained: true

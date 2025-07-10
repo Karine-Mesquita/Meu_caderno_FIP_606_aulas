@@ -1,0 +1,400 @@
+---
+title: "Aula_3_Testes_estatisticos"
+author: "Karine Mesquita"
+format: 
+  html:
+    code-fold: true       # permite esconder/mostrar os códigos (com uma abinha)
+    code-tools: true      # adiciona botões de copiar/mostrar código
+    toc: true             # inclui um sumário (índice)
+editor: visual
+editor_options: 
+  chunk_output_type: inline
+execute:
+  warning: false          # oculta mensagens de warning
+  message: false          # oculta mensagens do tipo "package loaded"
+  echo: true              # mostra o código
+  include: true           # mostra o output dos chunks
+---
+
+# Notas de aula
+
+# Aula 3_Testes estatisticos
+
+Nesta aula, aprendemos alguns testes estatisticos basicos, dependendo do tipo de análises.
+
+## Testes para amostras independentes
+
+```{r}
+#Dica: para procurar de que pacote a função vem, pesquisa na internet o nome da função, seguido de in r.
+#ativa os pacotes necessários 
+library(gsheet)
+library(ggplot2)
+library(stats)
+library(dplyr)
+library(tidyr)
+library(report)
+library(rstatix)
+library(ggpubr)
+library(multcomp)
+#install_packages("see")
+
+#cria o objeto com os dados que serão utilizados. Esses dados são da planilha dados-diversos, disponibilizada pelo professor. 
+
+dat_mg <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1bq2N19DcZdtax2fQW9OHSGMR0X2__Z9T/edit?gid=983033137#gid=983033137")
+
+#faz primeiro o plot para analizar vsualmente os dados 
+dat_mg |> 
+  ggplot(aes(trat, comp))+
+  geom_jitter(width = 0.1)
+
+```
+
+### Testes para saber se há diferença estatistica
+
+#### Teste T para amostras independentes
+
+```{r}
+
+?t.test 
+#usando o caractere "?" seguido do nome da função, serve para mostrar como o comendo funciona, lhe dá mais informações sobre pacotes e funções. 
+
+#transformar a planilha do formato longo para o formato largo  
+dat_mg2 <- dat_mg |>
+  pivot_wider(names_from = trat, values_from= comp)|>
+  dplyr::select(-rep)
+
+attach(dat_mg2)
+t.test(Mg2, control) #Teste T, que compara os tratamentos.
+saída_t_teste <- t.test(Mg2, control) #cria um objeto para receber o resultado do teste T
+
+#invertendo as variáveis 
+t.test(control, Mg2)
+saída_teste_T <- t.test(control, Mg2) #cria um objeto para receber o resultado do teste T
+
+#aplica a função report para gerar texto de interpretação dde saída dos resultados, neste caso para o teste T 
+library(report)
+report(saída_teste_T)
+
+#função para quando a tabela está no formato longo e não no largo, sem necessidade de transformação dos dados na tabela 
+library(rstatix)
+t_test(comp ~ trat, data = dat_mg)
+test_t <- t_test(comp ~ trat, data = dat_mg)
+test_t
+
+#Plotando o resultado do teste T e adicionando o valor de P manualmente 
+#install.packages("ggpubr")
+library(ggpubr)
+
+p <- ggboxplot(
+  dat_mg, x = "trat", y = "comp", 
+  color = "trat", palette = "jco")
+
+print(p) #comando para mostrar o gráfico plotado, caso não apareça 
+
+#adiciona o valor de P manulamente 
+
+p + stat_pvalue_manual(test_t, label = "p",
+  y.position = 18)+
+    ylim(0,20)+
+  labs(x = "Tratamento",
+       y = "Comprimento (mm)")
+
+ggsave("plot2.png", bg = "white" ) #comando para salvar o gráfico 
+
+```
+
+#### Teste de normalidade
+
+```{r}
+#testando a normalidade dos dados acima 
+shapiro.test(Mg2)
+shapiro.test(control)
+hist(Mg2)
+hist(control)
+
+# análise de variancia para validar o teste T, variancia e homogeneidade
+var.test(dat_mg2$Mg2,
+         dat_mg2$control)
+
+#ajuste no teste T caso as variancias não sejam homogeneas 
+t.test(control, Mg2, var.equal = FALSE)
+
+```
+
+### Teste T para amostras dependentes
+
+```{r}
+library(gsheet)
+escala <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1bq2N19DcZdtax2fQW9OHSGMR0X2__Z9T/edit?gid=1729131173#gid=1729131173")
+escala
+
+t_test(acuracia ~ assessment, 
+       data = escala,
+       paired = TRUE,
+       var.equal = FALSE)
+
+t_test
+       
+#plotando o gráfico para análise visual
+library(ggplot2)
+
+escala |> 
+  ggplot(aes(assessment, acuracia))+
+  geom_boxplot()
+
+unaided <- escala |> 
+  dplyr::filter(assessment == "Unaided") |> 
+  dplyr::select(acuracia) |> 
+  dplyr::pull()
+
+unaided 
+
+aided <- escala |> 
+  dplyr::filter(assessment == "Aided1") |> 
+  dplyr::select(acuracia) |> 
+  dplyr::pull() 
+
+aided
+
+#faz um teste de variancia 
+  var.test(unaided, aided)
+  hist(unaided)
+  hist(aided)
+  shapiro.test(unaided)
+  shapiro.test(aided) 
+  
+  #como a variancia foi heterogenea, faz o seguinte ajuste no teste
+  t.test(unaided, aided, paired = TRUE, 
+         var.equal = FALSE)
+  
+  #teste de Wilcoxon se apresenta como uma alterativa ao teste t pareado, ou seja, quando o objetivo também é verificar se existe diferença significativa de uma variável numérica entre dois grupos de interesse.
+  wilcox.test(unaided, aided)
+  
+  #teste equivalente Mann-Whitney é o teste não paramétrico equivalente ao teste t para amostras independentes
+  wilcox.test(unaided, aided, paired = FALSE)
+  #paired = false o transforma num mann-whitney 
+  
+```
+
+### Testes para 3 ou mais niveis de fator (3 ou mais tratamentos)
+
+```{r}
+  micelial <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1bq2N19DcZdtax2fQW9OHSGMR0X2__Z9T/edit?gid=959387827#gid=959387827")
+  
+  #Análise visual 
+  
+  micelial |> 
+    ggplot(aes(especie, tcm))+
+    geom_boxplot(outlier.colour = NA)+
+    geom_jitter(width = 0.1)
+  
+  #Anova 
+  anova1 <- aov(tcm ~ especie, data = micelial)
+  anova1 
+  anova(anova1)
+  
+  #outra forma de fazer a ANOVA
+  anova2 <- lm(tcm ~ especie, data = micelial)
+    anova(anova2)
+
+    
+    #residuo é a diferença entre o estimado pelo modelo e o observado 
+    #será que os resíduos são normais? 
+    residuals(anova1) #resíduos da anova
+hist(residuals(anova1))
+shapiro.test(residuals(anova1)) #testa a normalidade dos resíduos
+    
+    #teste para variancias de modelo 
+
+    #teste bartlett testa se as variancias são homogeneas
+
+    bartlett.test(tcm ~ especie, data = micelial)
+    
+    #teste de levene tem o mesmo propósito (menos sensível a desvios de normalidade
+    levene_test(tcm ~especie, data = micelial)
+    
+  #Use Levene quando os dados não forem normalmente distribuídos.
+#Use Bartlett quando os dados forem normalmente distribuídos.
+#Se ambos os testes indicarem que as variâncias são iguais, você pode seguir com a ANOVA.
+    
+  library(emmeans)
+    #pacote para calcular as médias do modelo e intervalo de confiança. Realiza contrastes e estimativas de médias após a modelagem estatística
+      m <- emmeans(anova2, ~ especie)
+  m 
+  
+  #emmeans nos deu a média por espécies, então usa o multicomp para comparar e visualizar as diferenças entre elas  
+  #install.packages("multcomp")
+  #install.packages("multcompView")
+  library(multcomp)
+  library(multcompView)
+  #o pacote multcom realiza comparações múltiplas (post hoc) após modelos lineares, modelos lineares generalizados, e outros tipos de modelos
+  
+  cld(m) #mostra letras compactas, ou seja, os grupos. Nesse caso, do emmeans
+
+ pwpm(m) #mostra as médias na diagonal e compara entre os tratamentos em forma de matriz 
+ 
+ pairs(m) #mostra as médias em lista e compara, igual o anterior, mas com formas de saída diferentes. Mostra os resultados pareados
+ 
+#no caso acima a  normalidade estava ok e as variancias eram nos resíduos 
+ 
+```
+
+### Quando os dados não seguem distribuição normal...
+
+```{r}
+#aqui utilizamos um banco de dados do proprio R. 
+
+insetos <- InsectSprays
+View(insetos) #comando para visualizar o conjunto de dados
+
+ insetos |> 
+   ggplot(aes(spray, count))+
+   geom_boxplot(outlier.colour = NA)+
+   geom_jitter(width = 0.1)
+ 
+ #modelo de anova para inspecionar normalidade e variancia 
+ anova3 <- lm(count ~spray, data = insetos)
+   anova(anova3)
+ 
+   #teste para variaveis homogeneas 
+   bartlett.test(count ~spray, data = insetos)
+   #sempre que a variancia for heterogenea tem que ajustar 
+   
+  #Ajusta um modelo linear (lm) para verificar se o tipo de spray tem efeito no número de insetos mortos (count) 
+   
+   m2 <- lm(count ~spray, data = insetos)
+   hist(residuals (m2))
+   shapiro.test(residuals(m2))
+   #neste caso não é distribuição normal e nem homogenea 
+   
+   #verificar visualmente se os resíduos do modelo m2 seguem uma distribuição normal
+   qqnorm(residuals(m2))
+   qqline(residuals(m2))
+   #quando chamar qqnorm e qqline juntos a linha e os pontos tem que estar juntos, para ser de fato normal, indicar normalidade.  
+  
+```
+
+### Alternativas quando os dados não seguirem normalidade e homogenedade
+
+Tem 3 alternativas para os casos em que isso ocorra, dados não normais e heterogeneos (em ANOVA)
+
+#### Alternativa 1: transformação de dados, transformar a resposta
+
+```{r}
+   #primeiro testa função log
+   m3 <- lm(log(count + 0.1) ~spray, data = insetos)
+   hist(residuals (m3))
+   shapiro.test(residuals(m3))
+   qqnorm(residuals(m3))
+     qqline(residuals(m3))
+  
+   #continuou com o erro, agora testa raiz quadrada 
+   
+   #REGRA: neste caso a raiz é uma boa saída pois quando são dados de contagem numa distribuição de poisson não normal, a raiz quadrada tende a normalizar a contagem individual. 
+  #aplica o modelo raiz quadrada e aplica a Anova parametrica normal 
+  
+   m4 <- lm(sqrt(count) ~ spray, data = insetos)
+   hist(residuals (m4))
+   shapiro.test(residuals(m4))
+   qqnorm(residuals(m4))
+   qqline(residuals(m4))
+   
+   #testar se as variâncias são homogêneas
+   bartlett.test(sqrt(count) ~spray, data = insetos)
+   anova(m4)
+   report(m4)
+   
+   m44 <- emmeans(m4, ~spray, type = "response")
+   cld(m44)
+   plot(m44)
+```
+
+#### Alternativa 2: teste não parametrico equivalente a anova
+
+```{r}
+#ou seja ele não depende das duas premissas de normalidade e homogeneidade, ele faz um ranqueamento, tipo o wilcox
+
+   #O teste de Kruskal-Wallis é um método estatístico não paramétrico que compara se três ou mais grupos têm a mesma distribuição. 
+
+   #mas este teste só diz que pelo menos um é diferente, mas não aponta quais são. 
+   
+   kruskal.test(count ~ spray, data = insetos)
+   kruskal_test(insetos, count ~ spray)
+   
+   #Para realizar o teste de Kruskal-Wallis e fazer comparações múltiplas pós-hoc entre os grupos, semelhante ao Tukey, mas para dados não paramétricos.
+   
+   library(agricolae) 
+   kruskal.test(insetos$count, insetos$spray, group = TRUE, console = TRUE) 
+   #Mostra o p valor e a diferença entre as médias. O "group = true" exibe as letras dos agrupamentos, enquanto "console = true" apresenta os resultados no console
+   
+   #como foi significante, transforma para rank para fazer o não parametrico. 
+   
+  m5 <- lm(rank(count) ~spray, data = insetos)
+  m5
+   hist(residuals (m5))
+   shapiro.test(residuals(m5))
+   qqnorm(residuals(m5))
+   qqline(residuals(m5))
+   
+   #quando partir para a alternativa a anova parametrica? ou seja, quando não possui normalidade nem homogeneidade dos dados.(usando shapiro-wilk, que testa normalidade dos residuos, e o bartlett ou levene que testam a homogeneidade)
+   
+   #essas comparações multiplas são post-hoc, as duas primeiras opções, mas quando não dá siguinificativo não faz post hoc, pois não tem diferença entre grupos 
+  
+    #quando não tem via de transformação, nada resolveu o problema de normalidade e homocedasticidade, tem que usar não parametrico mesmo!
+   
+```
+
+```{r}
+    #utilizando o pacote DHARMa 
+#install.packages("DHARMa")
+library(DHARMa)
+
+   #faz uma simulação dos residuos, não pega somente  observação 
+   #o DHARMa é mais intuitivo, ao invés de usar Levene, hist, qqnorm, shapiro..., pode usar o teste DHARMa como padrão. Para ver visualmente todas estas estatisticas em uma única função, por meio da simulação dos resíduos. Dando siguinificativo, vai para os testes post hoc
+   
+library(emmeans)
+library(tidyverse)
+
+insetos <- InsectSprays
+View(insetos)
+m2 <- lm(count ~ spray, data = insetos) #variâncias não são homogêneas
+plot(simulateResiduals(m2))
+    
+m2 <- lm(log(count+1) ~ spray, data = insetos) #transformar os dados para tornar as variâncias homogêneas
+plot(simulateResiduals(m2))
+
+    library(emmeans) #para estimar as médias
+library(multcomp)
+m2.2 <- emmeans(m2, ~ spray, type = "response")
+cld(m2.2)
+   
+```
+
+#### Alternativa 3: alternativa paramétrica - Modelos lineares generalizados (GLMs)
+
+```{r}
+   #nas ANOVAs, possuem um tipos especial de modelo linear generalizado, onde a distribuição é normal, Gaussiana, existem familias de dirtrubuição. 
+   #no caso de dados de contagem, como de insetos, usa de Poisson, neste caso não galsiana. 
+   
+      m2.3 <- glm(count ~ spray, data = insetos, 
+             family = poisson)
+      
+         m2.3 
+         anova(m2.3)
+          plot(simulateResiduals(m2.3))
+          
+         library(car)
+         Anova(m2.3)
+         medias_m2.3 <- emmeans(m2.3, ~ spray, type = "response")
+         medias_m2.3
+         cld(medias_m2.3)
+   
+    #outra forma de testar o modelo 
+         #install.packages("performance") 
+         library(performance)
+        performance(m2.3)
+        check_model(m2.3)
+        
+        #dados de sim e não, usa a familia binomial 
+        #o professor recomenda usar o DHARMa ao invés do check model, ele não é tão consistente  
+```

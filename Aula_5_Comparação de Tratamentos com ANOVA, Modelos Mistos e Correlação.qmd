@@ -1,0 +1,179 @@
+---
+title: "Aula_5_Comparação de Tratamentos com ANOVA, Modelos Mistos e Correlação"
+author: "Karine Mesquita"
+format: 
+  html:
+    code-fold: true       # permite esconder/mostrar os códigos (com uma abinha)
+    code-tools: true      # adiciona botões de copiar/mostrar código
+    toc: true             # inclui um sumário (índice)
+editor: visual
+editor_options: 
+  chunk_output_type: console
+execute:
+  warning: false          # oculta mensagens de warning
+  message: false          # oculta mensagens do tipo "package loaded"
+  echo: true              # mostra o código
+  include: true           # mostra o output dos chunks
+---
+
+# Aula 5
+
+## Anova
+
+Complementando a aula anterior, nesta aula revisamos a **ANOVA tradicional** e aplicamos **testes de médias**. Como nova análise temos os **modelos lineares mistos**, utilizados quando há estruturas de dados mais complexas, como parcelas subdivididas e efeitos aleatórios. Introduzindo também **correlação e regressão linear**, que permitem avaliar relações entre variáveis contínuas.
+
+```{r}
+library(gsheet)
+library(ggplot2)
+library(readxl)
+library(tidyverse)
+library(Hmisc)
+
+gsheet2tbl("https://docs.google.com/spreadsheets/d/1bq2N19DcZdtax2fQW9OHSGMR0X2__Z9T/edit?gid=866852711#gid=866852711")
+
+campo <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1bq2N19DcZdtax2fQW9OHSGMR0X2__Z9T/edit?gid=866852711#gid=866852711")
+
+campo
+
+#visualizando os dados 
+
+campo |> 
+  ggplot(aes(TRAT, PROD))+
+  geom_jitter(width = 0.1)+
+  stat_summary(
+    fun.data = "mean_cl_boot",
+    colour = "magenta", width = 0.3)
+
+#o comando mean_cl_boot acima, plota a média no gráfico 
+
+campo$TRAT <- factor(campo$TRAT)
+campo$BLOCO <- factor(campo$BLOCO)
+
+#a função factor é utilizada para transformar variáveis em fatores. Neste caso, foi utilizada para transformar os blocos e tratamentos, que estavam em números e o R poderia interpretar como valores. 
+
+#Anova
+m_campo <- lm(PROD ~ BLOCO + TRAT, data = campo)
+anova (m_campo)
+plot(m_campo)
+
+#verificar os pressuposto de normalidade e homogeneidade 
+library(DHARMa)
+simulateResiduals(m_campo)
+plot(simulateResiduals(m_campo))
+
+#para visualizar as médias marginais estimadas
+library(emmeans)
+means_campo <- emmeans(m_campo, ~TRAT)
+means_campo
+
+#teste de comparação multipla 
+library(multcomp)
+cld(means_campo)
+#para comparações em matriz
+pwpm(means_campo)
+
+#para ferrugem 
+#Anova 
+f_campo <- lm(FER ~ BLOCO + TRAT, data = campo)
+anova (f_campo)
+
+#teste de pressupostos de homogeneidade e normalidade 
+plot(simulateResiduals(f_campo))
+
+#como não seguiu o pressuposto de homogeneidade, pode-se tentar transformar os dados 
+
+f_campo <- lm(log(FER) ~ BLOCO + TRAT, data = campo)
+anova (f_campo)
+
+means_f_campo <- emmeans(f_campo, ~TRAT, type = "response")
+#utiliza-se a função type = response para sinalizar que os dados foram transformados, mas que os resultados devem ser retornados em valores reais 
+means_f_campo
+plot(means_f_campo)
+
+#teste de comparação multipla 
+library(multcomp)
+cld(means_f_campo, Letters = letters)
+#adicionar o comando Letters = letters, retorna letras ao invés de números no resultado do teste de médias 
+pwpp(means_f_campo)
+pwpm(means_f_campo)
+
+library(agricolae)
+cv.model(f_campo)
+
+```
+
+## Delineamento parcelas subdivididas
+
+```{r}
+gsheet2tbl("https://docs.google.com/spreadsheets/d/1bq2N19DcZdtax2fQW9OHSGMR0X2__Z9T/edit?gid=1345524759#gid=1345524759")
+
+milho <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1bq2N19DcZdtax2fQW9OHSGMR0X2__Z9T/edit?gid=1345524759#gid=1345524759")
+milho 
+
+milho |> 
+  ggplot(aes(hybrid, index, color = method))+
+  geom_jitter(width = 0.1)+
+  coord_flip()+
+  facet_wrap(~ method)
+
+#para modelos mistos (introduzir fator aleatório no modelo) deve ser utilizado o pacote lme4. 
+#install.packages("lme4")
+library(lme4)
+
+#cria um indentificador para a interação  híbrido bloco
+
+milho$hybrid_block <- interaction(milho$hybrid, milho$block)
+
+milho |> 
+  mutate(hybrid_block = interaction(hybrid, block))
+
+#modelo misto 
+m_milho <- lmer(index ~ hybrid*method+
+                (1 | block:hybrid_block), data = milho)
+  
+car::Anova(m_milho)
+plot(simulateResiduals(m_milho))
+
+  
+  media_milho <- emmeans(m_milho, ~ hybrid | method)
+  media_milho
+  cld(media_milho, Letters = letters)
+  
+  #para comparar na linha 
+  
+  plot(simulateResiduals(m_milho))
+  media_milho <- emmeans(m_milho, ~ method | hybrid)
+  media_milho
+  cld(media_milho, Letters = letters)
+  
+  
+ #para produtividade 
+  
+  m_milho2 <- lmer(yield ~hybrid*method+
+                (1 | block:hybrid_block), data = milho)
+  
+  car::Anova(m_milho)
+  plotSimulatedResiduals(m_milho)
+  
+  media_milho <- emmeans(m_milho, ~ hybrid | method)
+cld(media_milho, Letters = letters)
+
+media_milho2 <- emmeans(m_milho, ~ method | hybrid)
+cld(media_milho2, Letters = letters)
+
+  
+    #relação yeld e index 
+  milho |>
+    ggplot(aes(index, yield))+
+    geom_point()+
+    geom_smooth(method = "lm")
+  
+  #para análise de correlação
+  cor.test(milho$index, milho$yield)   
+  cor1 <- cor(milho$index, milho$yield)
+  #acima, duas maneiras de  determinar o coeficiente de correlação
+  
+  cor1*cor1*100
+  #acima, calcula-se o coeficiente de determinação: quanto da variação de y está sendo explicado por x
+  
+```

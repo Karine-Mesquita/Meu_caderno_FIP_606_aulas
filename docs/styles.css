@@ -1,0 +1,34 @@
+---
+title: "styles.css"
+format: html
+editor: visual
+---
+
+```{r}
+/* Centraliza a imagem do logo e o texto na página inicial */
+#index-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+}
+
+/* Logo */
+#logo {
+  width: 150px; /* Ajuste o tamanho do logo conforme necessário */
+  height: auto;
+  margin-bottom: 20px;
+}
+
+/* Texto de boas-vindas */
+#welcome-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: #0077b6; /* Cor azul do texto */
+  font-family: "Georgia", serif;
+}
+
+
+```

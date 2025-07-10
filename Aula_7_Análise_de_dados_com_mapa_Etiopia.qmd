@@ -1,0 +1,74 @@
+---
+title: "Aula_7_Análise de dados com mapa Etiopia"
+author: Karine Mesquita
+date: 2025-05-21
+html:
+toc: true
+editor: visual
+warning: false
+message: false
+---
+
+## Apresentação do site
+
+![](images/download.jpeg){style="float right" fig-align="center"}
+
+O conjunto de dados será o da ferrugem do café na Etiópia que está no arquivo de dados na nuvem.
+
+### Importar os dados
+
+usaremos a função `gsheet2tbl()` do pacote **\[gsheet\]** para carregar os dados no ambiente
+
+```{r}
+library(gsheet)
+cr <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1bq2N19DcZdtax2fQW9OHSGMR0X2__Z9T/edit?gid=1871397229#gid=1871397229")
+cr
+```
+
+### Visualizar os dados
+
+#### usaremos a função datatable() do pacote \[DT\]
+
+```{r}
+library(DT)
+datatable(cr)
+```
+
+#### Gráficos
+
+```{r}
+library(tidyverse)
+cr |> 
+  ggplot(aes(lon, lat))+
+  geom_point()
+
+#remotes::install_github("ropensci/rnaturalearthhires")
+#remotes::install_github("ropensci/rnaturalearth")
+library(rnaturalearth)
+library(rnaturalearthhires)
+#install.packages("sf")
+library(sf)
+#install.packages("earth")
+library(earth)
+ETH <- ne_states(country = "Ethiopia", 
+                 returnclass = "sf")
+
+library(tidyverse)
+library(ggthemes)
+library(ggspatial)
+
+ggplot(ETH)+
+  geom_sf(fill = "gray90")+
+  geom_point(data = cr, aes(lon, lat, color = inc))+
+  scale_color_viridis_c()+
+  theme_minimal()+
+  theme(legend.position = "bottom")+
+  annotation_scale(location = "tl")+
+  annotation_north_arrow(location = "br", which_north = "true")+
+  labs(title = "Ferrugem do café na Etiópia", x = "longitude", y= "latitude", subtitle = "levantamento em fazendas", caption = "Fonte: Mesquita et al.(2025)", 
+       color = "Incidencia (%)")
+  
+ggsave("mapa.Etiópia.png", bg = "white", width = 10)
+
+
+```

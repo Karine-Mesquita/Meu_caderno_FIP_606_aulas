@@ -1,0 +1,40 @@
+---
+title: "Seja Bem-Vindo ao meu Caderno de Aulas"
+output: 
+  html_document:
+    css: styles.css
+---
+
+::: {#index-container}
+<!-- Logo -->
+
+![Logo do site](images/logo_site.png){#logo}
+
+<!-- Texto de boas-vindas -->
+
+<p id="welcome-text">
+
+Bem-vindo(a) ao meu caderno da disciplina FIP 606 – Análise e Visualização de Dados em Fitopatologia. Este é um caderno de aulas da disciplina FIP 606 - Análise e visualização de dados em Fitopatologia. Ministradas por Emerson Del Ponte no primeiro semetre do ano de 2025.
+
+Este caderno tem como finalidade auxiliar aos alunos da disciplina a organizarem os estudos e a partir de sua disponibilização no site, pode ser utilizados por outras pessoas que busquem aprender sobre alguns testes ou funcionalidades do R.
+
+É importante pontuar que são apenas scripts e anotações de aula. Sempre busque aprofundar seus conhecimentos em outras fontes.
+
+Antes de iniciar, aqui vão algumas sugestões de leitura que podem ajudar no processo de aprendizado:
+
+1.  [Análise Estatística com R Para Leigos® – Tradução da 2a Edição](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.ufrb.edu.br/ccaab/images/AEPE/Divulga%C3%A7%C3%A3o/LIVROS/An%C3%A1lise_Estat%C3%ADstica_com_R_para_Leigos_-_2%C2%AA_Edi%C3%A7%C3%A3o_-_Joseph_Schmuller_-_2019.pdf)
+
+2.  [Introdução à estatistica com R](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.unifal-mg.edu.br/bibliotecas/wp-content/uploads/sites/125/2021/12/32-EBR_Unifal.pdf)
+
+3.  [OpenIntro Statistics Fourth Edition](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://ava.ufv.br/pluginfile.php/1028564/mod_resource/content/1/os.pdf)
+
+Todos os livros acima são materiais mais iniciantes.
+
+Caso você seja da área de agrárias e se interesse pelo tema, recomendo fortemente a leitura do livro "R for Plant Disease Epidemiology".
+
+E por fim, livros da companhia "O´Reilly", tem várias E-books interessantes tanto para a linguagem R, quanto para outros programas como Phyton, por exemplo.
+
+Dito isso, vamos começar!
+
+</p>
+:::
