@@ -5,29 +5,64 @@ editor: visual
 ---
 
 ```{r}
-/* Centraliza a imagem do logo e o texto na página inicial */
-#index-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;  /* altura total da tela */
+/* Fundo geral do site */
+body {
+  font-family: "Georgia", serif;
+  font-size: 16px;
+  background-color: #f5faff; /* azul bem clarinho */
+  color: #333333;
+}
+
+/* Cor dos links */
+a {
+  color: #0077b6; /* azul médio */
+}
+a:hover {
+  color: #023e8a; /* azul escuro no hover */
+}
+
+/* Barra de navegação (navbar) */
+.navbar {
+  background-color: #caf0f8 !important; /* azul piscina claro */
+  border-bottom: 1px solid #90e0ef;
+}
+
+/* Título no topo (com logo) */
+.navbar-brand img {
+  height: 40px;
+}
+
+/* Títulos das páginas */
+h1, h2, h3 {
+  color: #0077b6; /* azul médio */
+  font-family: "Georgia", serif;
+}
+
+/* Rodapé */
+.page-footer {
+  background-color: #e0f7ff;
+  padding: 10px;
   text-align: center;
+  font-size: 14px;
+  color: #333;
+  border-top: 1px solid #90e0ef;
 }
 
-/* Logo */
-#logo {
-  width: 274px;  /* Ajuste o tamanho do logo conforme necessário */
-  height: auto;
-  margin-bottom: 20px;
+/* Tabelas */
+table {
+  border-collapse: collapse;
+  width: 100%;
 }
 
-/* Texto de boas-vindas */
-#welcome-text {
-  font-size: 24px;
-  font-weight: bold;
-  color: #0077b6;  /* Cor azul do texto */
-  font-family: "Georgia", serif;  /* Fonte acadêmica */
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
 }
+
+th {
+  background-color: #ade8f4;
+  color: #003049;
+}
+
 
 ```
