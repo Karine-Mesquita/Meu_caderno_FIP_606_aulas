@@ -6,8 +6,6 @@ css: styles.css
 ---
 
 ::: {#index-container}
-<!-- Logo -->
-
 <!-- Texto de boas-vindas -->
 
 <p id="welcome-text">
